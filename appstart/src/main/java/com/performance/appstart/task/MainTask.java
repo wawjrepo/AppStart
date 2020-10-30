@@ -1,6 +1,6 @@
 package com.performance.appstart.task;
 
-public abstract class MainTask extends com.performance.appstart.task.Task {
+public abstract class MainTask extends Task {
 
     @Override
     public boolean runOnMainThread() {

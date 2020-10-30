@@ -1,6 +1,6 @@
 package com.performance.appstart.task;
 
-import android.content.Context;
+import android.app.Application;
 import android.os.Process;
 
 import com.performance.appstart.TaskDispatcher;
@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 
 public abstract class Task implements ITask {
     protected String mTag = getClass().getSimpleName().toString();
-    protected Context mContext = TaskDispatcher.getContext();
+    protected Application mApplication = TaskDispatcher.getApplication();
     protected boolean mIsMainProcess = TaskDispatcher.isMainProcess();// 当前进程是否是主进程
     private volatile boolean mIsWaiting;// 是否正在等待
     private volatile boolean mIsRunning;// 是否正在执行

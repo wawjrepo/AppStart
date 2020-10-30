@@ -1,5 +1,6 @@
 package com.performance.appstart;
 
+import android.app.Application;
 import android.content.Context;
 import android.os.Looper;
 import android.util.Log;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TaskDispatcher {
     private long mStartTime;
     private static final int WAITTIME = 10000;
-    private static Context sContext;
+    private static Application sApplication;
     private static boolean sIsMainProcess;
     private List<Future> mFutures = new ArrayList<>();
     private static volatile boolean sHasInit;
@@ -47,11 +48,11 @@ public class TaskDispatcher {
     private TaskDispatcher() {
     }
 
-    public static void init(Context context) {
-        if (context != null) {
-            sContext = context;
+    public static void init(Application application) {
+        if (application != null) {
+            sApplication = application;
             sHasInit = true;
-            sIsMainProcess = Utils.isMainProcess(sContext);
+            sIsMainProcess = Utils.isMainProcess(sApplication);
         }
     }
 
@@ -234,8 +235,8 @@ public class TaskDispatcher {
         }
     }
 
-    public static Context getContext() {
-        return sContext;
+    public static Application getApplication() {
+        return sApplication;
     }
 
     public static boolean isMainProcess() {
