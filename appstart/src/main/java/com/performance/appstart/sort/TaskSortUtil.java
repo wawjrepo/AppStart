@@ -1,10 +1,10 @@
 package com.performance.appstart.sort;
 
 
-
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 
+import com.performance.appstart.TaskDispatcher;
 import com.performance.appstart.task.Task;
 import com.performance.appstart.utils.DispatcherLog;
 
@@ -30,10 +30,10 @@ public class TaskSortUtil {
         Graph graph = new Graph(originTasks.size());
         for (int i = 0; i < originTasks.size(); i++) {
             Task task = originTasks.get(i);
-            if (task.isSend() || task.dependsOn() == null || task.dependsOn().size() == 0) {
+            if (task.isSend() || task.getAfter() == null || task.getAfter().size() == 0) {
                 continue;
             }
-            for (Class cls : task.dependsOn()) {
+            for (Class cls : task.getAfter()) {
                 int indexOfDepend = getIndexOfTask(originTasks, clsLaunchTasks, cls);
                 if (indexOfDepend < 0) {
                     throw new IllegalStateException(task.getClass().getSimpleName() +
@@ -63,7 +63,7 @@ public class TaskSortUtil {
                 newTasksDepended.add(originTasks.get(index));
             } else {
                 Task task = originTasks.get(index);
-                if (task.needRunAsSoon()) {
+                if (task.isRunAsSoon()) {
                     newTasksRunAsSoon.add(task);
                 } else {
                     newTasksWithOutDepend.add(task);
@@ -79,12 +79,12 @@ public class TaskSortUtil {
     }
 
     private static void printAllTaskName(List<Task> newTasksAll) {
-        if (true) {
-            return;
+        if (TaskDispatcher.debug) {
+            for (Task task : newTasksAll) {
+                DispatcherLog.i(task.getClass().getSimpleName());
+            }
         }
-        for (Task task : newTasksAll) {
-            DispatcherLog.i(task.getClass().getSimpleName());
-        }
+
     }
 
     public static List<Task> getTasksHigh() {
@@ -95,7 +95,6 @@ public class TaskSortUtil {
      * 获取任务在任务列表中的index
      *
      * @param originTasks
-     * @param taskName
      * @return
      */
     private static int getIndexOfTask(List<Task> originTasks,

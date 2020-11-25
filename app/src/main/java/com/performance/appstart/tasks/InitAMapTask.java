@@ -1,5 +1,7 @@
 package com.performance.appstart.tasks;
 
+import android.util.Log;
+
 import com.performance.appstart.task.Task;
 
 public class InitAMapTask extends Task {
@@ -15,6 +17,7 @@ public class InitAMapTask extends Task {
 
     @Override
     public void run() {
+        Log.i("dddd","InitAMapTask ");
 
 //        mLocationClient = new AMapLocationClient(mContext);
 //        mLocationClient.setLocationListener(mLocationListener);

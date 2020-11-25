@@ -1,8 +1,8 @@
 package com.performance.appstart.tasks.delayinittask;
 
-import com.performance.appstart.task.MainTask;
+import com.performance.appstart.task.Task;
 
-public class DelayInitTaskA extends MainTask {
+public class DelayInitTaskA extends Task {
 
     @Override
     public void run() {

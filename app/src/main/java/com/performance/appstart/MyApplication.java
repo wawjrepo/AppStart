@@ -2,6 +2,7 @@ package com.performance.appstart;
 
 import android.app.Application;
 
+import com.performance.appstart.task.Task;
 import com.performance.appstart.tasks.GetDeviceIdTask;
 import com.performance.appstart.tasks.InitAMapTask;
 import com.performance.appstart.tasks.InitBuglyTask;
@@ -11,24 +12,25 @@ import com.performance.appstart.tasks.InitStethoTask;
 import com.performance.appstart.tasks.InitUmengTask;
 import com.performance.appstart.tasks.InitWeexTask;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        TaskDispatcher.init(this);
+        TaskDispatcher.init(this,false);
 
         TaskDispatcher dispatcher = TaskDispatcher.createInstance();
 
         dispatcher.addTask(new InitAMapTask())
                 .addTask(new InitStethoTask())
-                .addTask(new InitWeexTask())
                 .addTask(new InitBuglyTask())
-                .addTask(new InitFrescoTask())
+                .addTask(new InitWeexTask())
+                .addTask(new InitFrescoTask().runAsSoon())
                 .addTask(new InitJPushTask())
                 .addTask(new InitUmengTask())
-                .addTask(new GetDeviceIdTask())
                 .start();
-
         dispatcher.await();
 
     }

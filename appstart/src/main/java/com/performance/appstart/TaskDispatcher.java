@@ -1,7 +1,6 @@
 package com.performance.appstart;
 
 import android.app.Application;
-import android.content.Context;
 import android.os.Looper;
 import android.util.Log;
 
@@ -30,7 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskDispatcher {
     private long mStartTime;
-    private static final int WAITTIME = 10000;
+    private static final int WAITTIME = 8000;
+    public static boolean debug;
     private static Application sApplication;
     private static boolean sIsMainProcess;
     private List<Future> mFutures = new ArrayList<>();
@@ -48,11 +48,12 @@ public class TaskDispatcher {
     private TaskDispatcher() {
     }
 
-    public static void init(Application application) {
+    public static void init(Application application, boolean isDebug) {
         if (application != null) {
             sApplication = application;
             sHasInit = true;
             sIsMainProcess = Utils.isMainProcess(sApplication);
+            debug = isDebug;
         }
     }
 
@@ -83,8 +84,8 @@ public class TaskDispatcher {
     }
 
     private void collectDepends(Task task) {
-        if (task.dependsOn() != null && task.dependsOn().size() > 0) {
-            for (Class<? extends Task> cls : task.dependsOn()) {
+        if (task.getAfter() != null && task.getAfter().size() > 0) {
+            for (Class<? extends Task> cls : task.getAfter()) {
                 if (mDependedHashMap.get(cls) == null) {
                     mDependedHashMap.put(cls, new ArrayList<Task>());
                 }
@@ -97,7 +98,7 @@ public class TaskDispatcher {
     }
 
     private boolean ifNeedWait(Task task) {
-        return !task.runOnMainThread() && task.needWait();
+        return !task.isRunOnMainThread() && task.isNeedWait();
     }
 
     @UiThread
@@ -130,7 +131,7 @@ public class TaskDispatcher {
         mStartTime = System.currentTimeMillis();
         for (Task task : mMainThreadTasks) {
             long time = System.currentTimeMillis();
-            new DispatchRunnable(task,this).run();
+            new DispatchRunnable(task, this).run();
             DispatcherLog.i("real main " + task.getClass().getSimpleName() + " cost   " +
                     (System.currentTimeMillis() - time));
         }
@@ -187,7 +188,7 @@ public class TaskDispatcher {
     }
 
     private void sendTaskReal(final Task task) {
-        if (task.runOnMainThread()) {
+        if (task.isRunOnMainThread()) {
             mMainThreadTasks.add(task);
 
             if (task.needCall()) {
@@ -206,7 +207,7 @@ public class TaskDispatcher {
             }
         } else {
             // 直接发，是否执行取决于具体线程池
-            Future future = task.runOn().submit(new DispatchRunnable(task,this));
+            Future future = task.getRunOnExecutor().submit(new DispatchRunnable(task, this));
             mFutures.add(future);
         }
     }
@@ -215,7 +216,7 @@ public class TaskDispatcher {
         if (ifNeedWait(task)) {
             mNeedWaitCount.getAndIncrement();
         }
-        task.runOn().execute(new DispatchRunnable(task,this));
+        task.getRunOnExecutor().execute(new DispatchRunnable(task, this));
     }
 
     @UiThread

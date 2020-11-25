@@ -6,6 +6,7 @@ import android.os.Process;
 import com.performance.appstart.TaskDispatcher;
 import com.performance.appstart.utils.DispatcherExecutor;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +19,14 @@ public abstract class Task implements ITask {
     private volatile boolean mIsRunning;// 是否正在执行
     private volatile boolean mIsFinished;// Task是否执行完成
     private volatile boolean mIsSend;// Task是否已经被分发
-    private CountDownLatch mDepends = new CountDownLatch(dependsOn() == null ? 0 : dependsOn().size());// 当前Task依赖的Task数量（需要等待被依赖的Task执行完毕才能执行自己），默认没有依赖
+    private CountDownLatch mDepends = new CountDownLatch(0);// 当前Task依赖的Task数量（需要等待被依赖的Task执行完毕才能执行自己），默认没有依赖
+
+    private boolean runOnMainThread = false;
+    private boolean needWait = false;
+    private boolean needRunAsSoon = false;
+    private int priority = Process.THREAD_PRIORITY_BACKGROUND;
+    private List<Class<? extends Task>> dependsOnTasks = null;
+    private ExecutorService runOnExecutor = DispatcherExecutor.getIOExecutor();
 
     /**
      * 当前Task等待，让依赖的Task先执行
@@ -44,8 +52,15 @@ public abstract class Task implements ITask {
      *
      * @return
      */
-    public boolean needRunAsSoon() {
-        return false;
+    @Override
+    public boolean isRunAsSoon() {
+        return needRunAsSoon;
+    }
+
+    @Override
+    public Task runAsSoon() {
+        needRunAsSoon = true;
+        return this;
     }
 
     /**
@@ -54,8 +69,14 @@ public abstract class Task implements ITask {
      * @return
      */
     @Override
-    public int priority() {
-        return Process.THREAD_PRIORITY_BACKGROUND;
+    public int getPriority() {
+        return priority;
+    }
+
+    @Override
+    public Task priority(int priority) {
+        this.priority = priority;
+        return this;
     }
 
     /**
@@ -65,8 +86,14 @@ public abstract class Task implements ITask {
      * @return
      */
     @Override
-    public ExecutorService runOn() {
-        return DispatcherExecutor.getIOExecutor();
+    public ExecutorService getRunOnExecutor() {
+        return runOnExecutor;
+    }
+
+    @Override
+    public Task runOnExecutor(ExecutorService executor) {
+        runOnExecutor = executor;
+        return this;
     }
 
     /**
@@ -75,8 +102,14 @@ public abstract class Task implements ITask {
      * @return
      */
     @Override
-    public boolean needWait() {
-        return false;
+    public boolean isNeedWait() {
+        return needWait;
+    }
+
+    @Override
+    public Task needWait() {
+        needWait = true;
+        return this;
     }
 
     /**
@@ -85,13 +118,27 @@ public abstract class Task implements ITask {
      * @return
      */
     @Override
-    public List<Class<? extends Task>> dependsOn() {
-        return null;
+    public List<Class<? extends Task>> getAfter() {
+        return dependsOnTasks;
+    }
+
+    @SafeVarargs
+    @Override
+    public final Task after(Class<? extends Task>... dependsOn) {
+        dependsOnTasks = Arrays.asList(dependsOn);
+        mDepends = new CountDownLatch(dependsOnTasks == null ? 0 : dependsOnTasks.size());
+        return this;
     }
 
     @Override
-    public boolean runOnMainThread() {
-        return false;
+    public boolean isRunOnMainThread() {
+        return runOnMainThread;
+    }
+
+    @Override
+    public Task runOnMainThread() {
+        runOnMainThread = true;
+        return this;
     }
 
     @Override
@@ -100,7 +147,8 @@ public abstract class Task implements ITask {
     }
 
     @Override
-    public void setTaskCallBack(TaskCallBack callBack) {}
+    public void setTaskCallBack(TaskCallBack callBack) {
+    }
 
     @Override
     public boolean needCall() {

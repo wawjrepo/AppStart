@@ -1,13 +1,19 @@
 package com.performance.appstart.task;
 
+import android.os.Debug;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
+import android.widget.Toast;
 
 import androidx.core.os.TraceCompat;
 
+import com.performance.appstart.BuildConfig;
 import com.performance.appstart.TaskDispatcher;
 import com.performance.appstart.stat.TaskStat;
 import com.performance.appstart.utils.DispatcherLog;
+
+import java.util.logging.Logger;
 
 /**
  * 任务真正执行的地方
@@ -20,7 +26,8 @@ public class DispatchRunnable implements Runnable {
     public DispatchRunnable(Task task) {
         this.mTask = task;
     }
-    public DispatchRunnable(Task task,TaskDispatcher dispatcher) {
+
+    public DispatchRunnable(Task task, TaskDispatcher dispatcher) {
         this.mTask = task;
         this.mTaskDispatcher = dispatcher;
     }
@@ -31,7 +38,7 @@ public class DispatchRunnable implements Runnable {
         DispatcherLog.i(mTask.getClass().getSimpleName()
                 + " begin run" + "  Situation  " + TaskStat.getCurrentSituation());
 
-        Process.setThreadPriority(mTask.priority());
+        Process.setThreadPriority(mTask.getPriority());
 
         long startTime = System.currentTimeMillis();
 
@@ -43,26 +50,39 @@ public class DispatchRunnable implements Runnable {
 
         // 执行Task
         mTask.setRunning(true);
-        mTask.run();
-
-        // 执行Task的尾部任务
-        Runnable tailRunnable = mTask.getTailRunnable();
-        if (tailRunnable != null) {
-            tailRunnable.run();
-        }
-
-        if (!mTask.needCall() || !mTask.runOnMainThread()) {
-            printTaskLog(startTime, waitTime);
-
-            TaskStat.markTaskDone();
-            mTask.setFinished(true);
-            if(mTaskDispatcher != null){
-                mTaskDispatcher.satisfyChildren(mTask);
-                mTaskDispatcher.markTaskDone(mTask);
+        try {
+            mTask.run();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (TaskDispatcher.debug) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mTask.mApplication, "Application的" + mTask.getClass().getSimpleName() + "初始化错误：" + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
-            DispatcherLog.i(mTask.getClass().getSimpleName() + " finish");
+        } finally {
+            // 执行Task的尾部任务
+            Runnable tailRunnable = mTask.getTailRunnable();
+            if (tailRunnable != null) {
+                tailRunnable.run();
+            }
+
+            if (!mTask.needCall() || !mTask.isRunOnMainThread()) {
+                printTaskLog(startTime, waitTime);
+
+                TaskStat.markTaskDone();
+                mTask.setFinished(true);
+                if (mTaskDispatcher != null) {
+                    mTaskDispatcher.satisfyChildren(mTask);
+                    mTaskDispatcher.markTaskDone(mTask);
+                }
+                DispatcherLog.i(mTask.getClass().getSimpleName() + " finish");
+            }
+            TraceCompat.endSection();
         }
-        TraceCompat.endSection();
+
     }
 
     /**
@@ -76,7 +96,7 @@ public class DispatchRunnable implements Runnable {
         if (DispatcherLog.isDebug()) {
             DispatcherLog.i(mTask.getClass().getSimpleName() + "  wait " + waitTime + "    run "
                     + runTime + "   isMain " + (Looper.getMainLooper() == Looper.myLooper())
-                    + "  needWait " + (mTask.needWait() || (Looper.getMainLooper() == Looper.myLooper()))
+                    + "  needWait " + (mTask.isNeedWait() || (Looper.getMainLooper() == Looper.myLooper()))
                     + "  ThreadId " + Thread.currentThread().getId()
                     + "  ThreadName " + Thread.currentThread().getName()
                     + "  Situation  " + TaskStat.getCurrentSituation()

@@ -1,23 +1,22 @@
 package com.performance.appstart.tasks;
 
-import android.app.Application;
+import android.util.Log;
 
-import com.performance.appstart.task.MainTask;
+import com.performance.appstart.task.Task;
 //import com.taobao.weex.InitConfig;
 //import com.taobao.weex.WXSDKEngine;
 
 /**
  * 主线程执行的task
  */
-public class InitWeexTask extends MainTask {
+public class InitWeexTask extends Task {
 
-    @Override
-    public boolean needWait() {
-        return true;
-    }
+
 
     @Override
     public void run() {
+        Log.i("dddd","InitWeexTask begin");
+        Log.i("dddd","InitWeexTask end");
 
 //        InitConfig config = new InitConfig.Builder().build();
 //        WXSDKEngine.initialize((Application) mContext, config);
