@@ -88,7 +88,7 @@ public class DispatcherExecutor {
 //        sIOThreadPoolExecutor = Executors.newCachedThreadPool(sThreadFactory);
         sIOThreadPoolExecutor = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(),
                 60L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
+                new LinkedBlockingQueue<Runnable>(),
                 sThreadFactory);
     }
 
