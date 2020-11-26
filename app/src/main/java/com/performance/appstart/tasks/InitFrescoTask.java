@@ -11,14 +11,15 @@ import com.performance.appstart.task.Task;
 
 public class InitFrescoTask extends Task {
     @Override
-    public void run() {
-        Log.i("dddd","InitFrescoTask");
+    public void run() {Log.i("ddddddddddddd","ee");
+        long start = System.currentTimeMillis();
 
-//        Set<RequestListener> listenerset = new HashSet<>();
-//        listenerset.add(new FrescoTraceListener());
-//        ImagePipelineConfig config = ImagePipelineConfig.newBuilder(mContext).setRequestListeners(listenerset)
-//                .build();
-//        Fresco.initialize(mContext,config);
+        for (long i = 0; i < 723456652; i++) {
+            String test = "dddd";
+            double e = Long.MAX_VALUE / 123456.876543456755555D;
+        }
+        Log.i("dddd", "InitFrescoTask " + (System.currentTimeMillis() - start));
+
     }
 
 }

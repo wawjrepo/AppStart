@@ -15,10 +15,14 @@ public class InitStethoTask extends Task {
 
     @Override
     public void run() {
-        Log.i("dddd", "InitStethoTask begin");
-       int t=1/0;
+        Log.i("ddddddddddddd","ee");
+        long start = System.currentTimeMillis();
 
-        Log.i("dddd", "InitStethoTask end");
+        for (long i = 0; i < 723456652; i++) {
+            String test = "dddd";
+            double e = Long.MAX_VALUE / 123456.876543456755555D;
+        }
+        Log.i("dddd", "InitStethoTask " + (System.currentTimeMillis() - start));
 //        Stetho.initializeWithDefaults(mContext);
     }
 }

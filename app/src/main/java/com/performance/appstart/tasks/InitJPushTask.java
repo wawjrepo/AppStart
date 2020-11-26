@@ -16,11 +16,19 @@ public class InitJPushTask extends Task {
 
 
     @Override
-    public void run() {
+    public void run() {Log.i("ddddddddddddd","ee");
 //        JPushInterface.init(mContext);
 //        PerformanceApp app = (PerformanceApp) mContext;
 //        JPushInterface.setAlias(mContext, 0, app.getDeviceId());
-        Log.i("dddd","InitJPushTask ");
+        long start = System.currentTimeMillis();
+
+        for (long i = 0; i <723456652; i++) {
+            String test = "dddd";
+            double e = Long.MAX_VALUE / 123456.876543456755555D;
+        }
+
+        Log.i("dddd", "InitJPushTask " + (System.currentTimeMillis() - start));
+
     }
 
 }

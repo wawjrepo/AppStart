@@ -17,8 +17,13 @@ public class InitAMapTask extends Task {
 
     @Override
     public void run() {
-        Log.i("dddd","InitAMapTask ");
-
+        Log.i("ddddddddddddd","ee");
+        long start = System.currentTimeMillis();
+        for (long i = 0; i < 723456652; i++) {
+            String test = "dddd";
+            double e = Long.MAX_VALUE / 123456.876543456755555D;
+        }
+        Log.i("dddd", "InitAMapTask " + (System.currentTimeMillis() - start));
 //        mLocationClient = new AMapLocationClient(mContext);
 //        mLocationClient.setLocationListener(mLocationListener);
 //        mLocationOption = new AMapLocationClientOption();

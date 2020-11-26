@@ -5,7 +5,7 @@ import android.util.Log;
 import com.performance.appstart.task.Task;
 //import com.umeng.commonsdk.UMConfigure;
 
-public class InitUmengTask extends Task {
+public class Init1Task extends Task {
 
     @Override
     public void run() {Log.i("ddddddddddddd","ee");
@@ -13,8 +13,9 @@ public class InitUmengTask extends Task {
 
         for (long i = 0; i <723456652; i++) {
             String test = "dddd";
-            double e = Long.MAX_VALUE / 123456.876543456755555D;
+            String tewst = "dd33dd";
+            String tewwst = "dd33d4d";
         }
-        Log.i("dddd", "InitUmengTask " + (System.currentTimeMillis() - start));
+        Log.i("dddd", "Init1Task " + (System.currentTimeMillis() - start));
     }
 }

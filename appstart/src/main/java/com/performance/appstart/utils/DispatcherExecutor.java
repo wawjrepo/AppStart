@@ -85,11 +85,7 @@ public class DispatcherExecutor {
                 CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
                 sPoolWorkQueue, sThreadFactory, sHandler);
         sCPUThreadPoolExecutor.allowCoreThreadTimeOut(true);
-//        sIOThreadPoolExecutor = Executors.newCachedThreadPool(sThreadFactory);
-        sIOThreadPoolExecutor = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(),
-                60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(),
-                sThreadFactory);
+        sIOThreadPoolExecutor = Executors.newCachedThreadPool(sThreadFactory);
     }
 
 }
