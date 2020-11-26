@@ -4,13 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity2">
 
-    <androidx.appcompat.widget.AppCompatButton
+    <WebView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:text="test"
-        android:id="@+id/button"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        android:id="@+id/webview"
+        android:layout_height="match_parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
