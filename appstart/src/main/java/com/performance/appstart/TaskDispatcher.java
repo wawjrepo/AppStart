@@ -54,6 +54,7 @@ public class TaskDispatcher {
             sHasInit = true;
             sIsMainProcess = Utils.isMainProcess(sApplication);
             debug = isDebug;
+            DispatcherLog.setDebug(isDebug);
         }
     }
 
