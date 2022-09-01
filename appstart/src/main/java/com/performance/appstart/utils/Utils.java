@@ -1,21 +1,29 @@
 package com.performance.appstart.utils;
 
 import android.app.ActivityManager;
+import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
+import android.os.Process;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.util.List;
 
 public class Utils {
 
-    private static String sCurProcessName = null;
+    private static String currentProcessName = null;
 
     public static boolean isMainProcess(Context context) {
-        String processName = getCurProcessName(context);
+        String processName = getCurrentProcessName(context);
         if (processName != null && processName.contains(":")) {
             return false;
         }
@@ -23,52 +31,78 @@ public class Utils {
     }
 
 
-    public static String getCurProcessName(Context context) {
-        String procName = sCurProcessName;
-        if (!TextUtils.isEmpty(procName)) {
-            return procName;
+    /**
+     * @return 当前进程名
+     */
+    @Nullable
+    public static String getCurrentProcessName(@NonNull Context context) {
+        if (!TextUtils.isEmpty(currentProcessName)) {
+            return currentProcessName;
         }
-        try {
-            int pid = android.os.Process.myPid();
-            ActivityManager mActivityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            for (ActivityManager.RunningAppProcessInfo appProcess : mActivityManager.getRunningAppProcesses()) {
-                if (appProcess.pid == pid) {
-                    sCurProcessName = appProcess.processName;
-                    return sCurProcessName;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        //1)通过Application的API获取当前进程名
+        currentProcessName = getCurrentProcessNameByApplication();
+        if (!TextUtils.isEmpty(currentProcessName)) {
+            return currentProcessName;
         }
-        sCurProcessName = getCurProcessNameFromProc();
-        return sCurProcessName;
+
+        //2)通过反射ActivityThread获取当前进程名
+        currentProcessName = getCurrentProcessNameByActivityThread();
+        if (!TextUtils.isEmpty(currentProcessName)) {
+            return currentProcessName;
+        }
+
+        //3)通过ActivityManager获取当前进程名
+        currentProcessName = getCurrentProcessNameByActivityManager(context);
+
+        return currentProcessName;
     }
 
-    private static String getCurProcessNameFromProc() {
-        BufferedReader cmdlineReader = null;
+    /**
+     * 通过Application新的API获取进程名，无需反射，无需IPC，效率最高。
+     */
+    private static String getCurrentProcessNameByApplication() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return Application.getProcessName();
+        }
+        return null;
+    }
+
+    /**
+     * 通过反射ActivityThread获取进程名，避免了ipc
+     */
+    private static String getCurrentProcessNameByActivityThread() {
+        String processName = null;
         try {
-            cmdlineReader = new BufferedReader(new InputStreamReader(
-                    new FileInputStream(
-                            "/proc/" + android.os.Process.myPid() + "/cmdline"),
-                    "iso-8859-1"));
-            int c;
-            StringBuilder processName = new StringBuilder();
-            while ((c = cmdlineReader.read()) > 0) {
-                processName.append((char) c);
+            final Method declaredMethod = Class.forName("android.app.ActivityThread", false, Application.class.getClassLoader())
+                    .getDeclaredMethod("currentProcessName", (Class<?>[]) new Class[0]);
+            declaredMethod.setAccessible(true);
+            final Object invoke = declaredMethod.invoke(null, new Object[0]);
+            if (invoke instanceof String) {
+                processName = (String) invoke;
             }
-            return processName.toString();
         } catch (Throwable e) {
-            // ignore
-        } finally {
-            if (cmdlineReader != null) {
-                try {
-                    cmdlineReader.close();
-                } catch (Exception e) {
-                    // ignore
+            e.printStackTrace();
+        }
+        return processName;
+    }
+
+    /**
+     * 通过ActivityManager 获取进程名，需要IPC通信
+     */
+    private static String getCurrentProcessNameByActivityManager(@NonNull Context context) {
+        int pid = Process.myPid();
+        android.app.ActivityManager am = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (am != null) {
+            List<ActivityManager.RunningAppProcessInfo> runningAppList = am.getRunningAppProcesses();
+            if (runningAppList != null) {
+                for (ActivityManager.RunningAppProcessInfo processInfo : runningAppList) {
+                    if (processInfo.pid == pid) {
+                        return processInfo.processName;
+                    }
                 }
             }
         }
         return null;
     }
-
 }
